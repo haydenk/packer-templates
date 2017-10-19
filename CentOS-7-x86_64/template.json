@@ -1,0 +1,96 @@
+{
+  "provisioners": [
+    {
+      "type": "file",
+      "destination": "/tmp/",
+      "source": "./files/default_web_folder.tar.bz2"
+    },
+    {
+      "type": "shell",
+      "execute_command": "mkdir -p /var/www/html && cd /var/www/html && tar xvf /tmp/default_web_folder.tar.bz2"
+    },
+    {
+      "type": "shell",
+      "scripts": [
+        "scripts/base.sh",
+        "scripts/vagrant.sh",
+        "scripts/virtualbox.sh",
+        "scripts/cleanup.sh",
+        "scripts/zerodisk.sh"
+      ],
+      "execute_command": "echo 'vagrant'|sudo -S sh '{{.Path}}'"
+    },
+    {
+      "type": "file",
+      "destination": "/etc/",
+      "source": "./files/php/php.ini"
+    },
+    {
+      "type": "file",
+      "destination": "/etc/httpd/conf/",
+      "source": "./files/httpd/httpd.conf"
+    },
+    {
+      "type": "file",
+      "destination": "/etc/httpd/conf.d/",
+      "source": "./files/httpd/z00_intel_portal.conf"
+    },
+    {
+      "type": "file",
+      "destination": "/etc/httpd/conf.d/",
+      "source": "./files/httpd/z01_intel_api.conf"
+    },
+    {
+      "type": "file",
+      "destination": "/etc/httpd/conf.d/",
+      "source": "./files/httpd/z03_intel_malware_upload.conf"
+    },
+    {
+      "type": "file",
+      "destination": "/etc/httpd/conf.d/",
+      "source": "./files/httpd/z04_tanium_distro.conf"
+    },
+  ],
+  "builders": [
+    {
+      "type": "virtualbox-iso",
+      "boot_command": [
+        "<tab> text ks=http://{{ .HTTPIP }}:{{ .HTTPPort }}/ks.cfg<enter><wait>"
+      ],
+      "boot_wait": "10s",
+      "disk_size": 20480,
+      "guest_os_type": "RedHat_64",
+      "http_directory": "http",
+      "iso_checksum": "f2f7367deb90a25822947660c71638333ca0eceeabecc2d631be6cd508c24494",
+      "iso_checksum_type": "sha256",
+      "iso_url": "http://mirrors.mit.edu/centos/7/isos/x86_64/CentOS-7-x86_64-NetInstall-1611.iso",
+      "ssh_username": "vagrant",
+      "ssh_password": "vagrant",
+      "ssh_port": 22,
+      "ssh_wait_timeout": "10000s",
+      "shutdown_command": "sudo /sbin/shutdown -P now",
+      "guest_additions_path": "VBoxGuestAdditions_{{.Version}}.iso",
+      "virtualbox_version_file": ".vbox_version",
+      "vboxmanage": [
+        [
+          "modifyvm",
+          "{{.Name}}",
+          "--memory",
+          "1024"
+        ],
+        [
+          "modifyvm",
+          "{{.Name}}",
+          "--cpus",
+          "2"
+        ]
+      ]
+    }
+  ],
+  "post-processors": [
+    {
+      "type": "vagrant",
+      "output": "Telepath-x86_64-{{ .Provider }}.box"
+    }
+  ]
+}
